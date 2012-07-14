@@ -24,6 +24,7 @@ import in.partake.model.dto.UserPreference;
 import in.partake.model.dto.UserReceivedMessage;
 import in.partake.model.dto.UserTwitterLink;
 import in.partake.model.dto.auxiliary.MessageDelivery;
+import in.partake.view.util.Helper;
 
 import java.util.UUID;
 
@@ -301,47 +302,71 @@ class SendMessageEnvelopeTask extends Transaction<Void> implements IPartakeDaemo
         switch (notification.getNotificationType()) {
         case EVENT_ONEDAY_BEFORE_REMINDER: {
             int rest = 140;
-            String format = "[PRTK] イベントの１日前です。あなたの参加は確定しています。 %s : %s";
+            String format = "[PRTK] 「%s」は%sに開始です。あなたの参加は確定しています。 %s";
             rest -= Util.codePointCount(format);
-            rest -= 20; // For URL
+
+            String beginDate = Helper.readableDate(event.getBeginDate());
+            rest -= Util.codePointCount(beginDate);
+
+            String url = event.getEventURL();
+            rest -= 20; // URL is always 20.
+
             String title = Util.shorten(event.getTitle(), rest);
-            messageBody = String.format(format, event.getEventURL(), title);
+            messageBody = String.format(format, title, beginDate, url);
             break;
         }
         case HALF_DAY_BEFORE_REMINDER_FOR_RESERVATION: {
             int rest = 140;
-            String format = "[PRTK] 締め切り１２時間前です。参加・不参加を確定してください。 %s : %s";
+            String format = "[PRTK] 「%s」の締め切りは%sです。参加・不参加を確定してください。 %s";
             rest -= Util.codePointCount(format);
+
+            String deadline = Helper.readableDate(ticket.acceptsTill(event));
+            rest -= Util.codePointCount(deadline);
+
+            String url = event.getEventURL();
             rest -= 20; // For URL
+
             String title = Util.shorten(event.getTitle(), rest);
-            messageBody = String.format(format, event.getEventURL(), title);
+            messageBody = String.format(format, title, deadline, url);
             break;
         }
         case ONE_DAY_BEFORE_REMINDER_FOR_RESERVATION: {
             int rest = 140;
-            String format = "[PRTK] 締め切り１日前です。参加・不参加を確定してください。 %s : %s";
+            String format = "[PRTK] 「%s」の締め切りは%s前です。参加・不参加を確定してください。 %s";
             rest -= Util.codePointCount(format);
+
+            String deadline = Helper.readableDate(ticket.acceptsTill(event));
+            rest -= Util.codePointCount(deadline);
+
+            String url = event.getEventURL();
             rest -= 20; // For URL
+
             String title = Util.shorten(event.getTitle(), rest);
-            messageBody = String.format(format, event.getEventURL(), title);
+            messageBody = String.format(format, title, deadline, url);
             break;
         }
         case BECAME_TO_BE_CANCELLED: {
             int rest = 140;
-            String format = "[PRTK] 参加者から補欠へ繰り下がりました。 %s : %s";
+            String format = "[PRTK] 「%s」で参加者から補欠へ繰り下がりました。 %s";
             rest -= Util.codePointCount(format);
+
+            String url = event.getEventURL();
             rest -= 20; // For URL
+
             String title = Util.shorten(event.getTitle(), rest);
-            messageBody = String.format(format, event.getEventURL(), title);
+            messageBody = String.format(format, title, url);
             break;
         }
         case BECAME_TO_BE_ENROLLED: {
             int rest = 140;
-            String format = "[PRTK] 補欠から参加者へ繰り上がりました。 %s : %s";
+            String format = "[PRTK] 「%s」で補欠から参加者へ繰り上がりました。 %s";
             rest -= Util.codePointCount(format);
+
+            String url = event.getEventURL();
             rest -= 20; // For URL
+
             String title = Util.shorten(event.getTitle(), rest);
-            messageBody = String.format(format, event.getEventURL(), title);
+            messageBody = String.format(format, title, url);
             break;
         }
         default:
